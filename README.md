@@ -8,9 +8,15 @@ https://github.com/pfalcon/esp-open-sdk
 micropython-esp8266编译：
 https://github.com/micropython/micropython/tree/master/esp8266
 
+----------
 
+
+在大佬的固件下
 使用attrack.py包装一下：  
+  
+  
 
+使用方法
 ```
 import attack
 attack.death("wifiname")
