@@ -52,13 +52,20 @@ def ap_list():
     sta=sta_if()
     li=sta.scan()
     for i in range(len(li)):
-        for j in range(i):
+        for j in range(len(li)-i-1):
             if li[j][3]<li[j+1][3]:
                 swap=li[j]
                 li[j]=li[j+1]
                 li[j+1]=swap
     return li
+# sta_if=wireless.attack(0)#0：STA 模式 1：AP模式
+# sta_if.active(True)
+# ap_list=sta_if.scan()
 
+# for i in ap_list:
+#     print(i)
+
+# attack(sta_if,ap_list[2],100)
 def find_wifi(name):
     for i in ap_list():
         if i[0].decode("utf8")==str(name):
