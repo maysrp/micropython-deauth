@@ -12,7 +12,7 @@ https://github.com/micropython/micropython/tree/master/esp8266
 
 
 在大佬的固件下
-使用attrack.py包装一下：  
+使用attack.py包装一下：  
   
   
 
