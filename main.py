@@ -4,7 +4,7 @@ import time
 import ubinascii as binascii
 import gc
 
-# ADkeyboard请自己重新测试4个按键的值 ，ESP8266 默认的ADC有两个 ADC0 为靠近usb接口处发A0
+# ADkeyboard请自己重新测试4个按键的值
 i2c=I2C(sda=Pin(04), scl=Pin(05), freq=1000000) #SDA D2 GPIO04; SCL D1 GPIO05
 from ssd1306 import SSD1306_I2C
 oled = SSD1306_I2C(128, 64, i2c) 
@@ -13,12 +13,12 @@ q=attack.ap_list()[0:8]
 def view(q,num=0):
     num=mun(num)
     oled.fill(0)
-    oled.text("wifi name",0,0,1)
+    oled.text("wifi name:",0,0,1)
     oled.text(q[num][0].decode("utf8"),0,8,1)
     oled.text("BSSID:",0,16,1)
     oled.text(binascii.hexlify(q[num][1]).decode("utf8"),0,24,1)
     oled.text("Channel:"+str(q[num][2]),0,32,1)
-    oled.text(str(q[num][3])+"dBm",0,40,1)
+    oled.text("Signal:"+str(q[num][3])+"dBm",0,40,1)
     oled.show()
 def mun(num):
     if num<0:
