@@ -4,7 +4,7 @@ import time
 import ubinascii as binascii
 import gc
 
-# ADkeyboard请自己重新测试4个按键的值
+# ADkeyboard请自己重新测试4个按键的值 ，ESP8266 默认的ADC有两个 ADC0 为靠近usb接口处发A0
 i2c=I2C(sda=Pin(04), scl=Pin(05), freq=1000000) #SDA D2 GPIO04; SCL D1 GPIO05
 from ssd1306 import SSD1306_I2C
 oled = SSD1306_I2C(128, 64, i2c) 
