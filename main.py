@@ -20,6 +20,11 @@ def view(q,num=0):
     oled.text("Channel:"+str(q[num][2]),0,32,1)
     oled.text("Signal:"+str(q[num][3])+"dBm",0,40,1)
     oled.show()
+    return q[num]
+def viewLisn(lisn):
+    for i in lisn:
+        oled.text("_",0,i*8,1)
+    oled.show()
 def mun(num):
     if num<0:
         num=0
@@ -53,6 +58,8 @@ def atf(wi,vi):
 
 adc=ADC(0)
 wi=select(q,0)
+lis=[]
+lisn=[]
 num=0
 st=0
 while 1:
@@ -61,19 +68,33 @@ while 1:
         num-=1
         num=mun(num)
         wi=select(q,num)
+        viewLisn(lisn)
     elif v in range(300,350):
         num+=1
         num=mun(num)
         wi=select(q,num)
+        viewLisn(lisn)
     elif v in range(750,800):
         st=785
     elif v in range(0,50):
         st=0
         wi=select(q,num)
+        viewLisn(lisn)
     elif v in range(500,550):
-        view(q,num)
+        wi=view(q,num)
+        num=mun(num)
+        if wi in lis:
+            lis.remove(wi)
+            lisn.remove(num)
+        else:
+            lis.append(wi)
+            lisn.append(num)
     else:
         pass
-    atf(wi,st)
+    if len(lis)>1:
+        for i in lis:
+            atf(i,st)
+    else:
+        atf(wi,st)
     time.sleep(0.3)
     gc.collect()
