@@ -41,8 +41,8 @@ def Attack(sta_if,vm,sendNum=100):
                 time.sleep_ms(5)
             else:
                 print('---deauth fail-------')
-            time.sleep_ms(5000)
-    #默认5.1秒一次循环，差不多500秒一次循环
+            time.sleep_ms(3000)
+    #默认3.1秒一次循环，差不多300秒一次
 def sta_if():
     sta=wireless.attack(0)#0：STA 模式 1：AP模式
     sta.active(True)
